@@ -133,12 +133,13 @@
         }
         
         .ship-info {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            font-size: 16px;
-            opacity: 0.7;
-        }
+    position: absolute;
+    top: 10px; /* Reduced from 20px to move it up */
+    right: 20px;
+    font-size: 14px; /* Reduced from 16px */
+    opacity: 0.7;
+    letter-spacing: 1px; /* Added to improve readability */
+}
         
         .status-bar {
             position: fixed;
@@ -213,8 +214,10 @@
             }
             
             .ship-info {
-                font-size: 14px;
-            }
+        top: 5px; /* Even higher on very small screens */
+        font-size: 12px; /* Smaller on mobile */
+        right: 15px; /* Slightly adjusted positioning */
+    }
             
             .status-bar {
                 font-size: 14px;
