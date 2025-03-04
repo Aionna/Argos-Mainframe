@@ -97,14 +97,7 @@
             border-radius: 5px;
             position: relative;
             height: 200px;
-            overflow: auto;
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
-        
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .message-container::-webkit-scrollbar {
-            display: none;
+            overflow: hidden;
         }
         
         .message-header {
@@ -123,32 +116,20 @@
             margin-bottom: 20px;
         }
         
-        .cursor {
-            display: inline-block;
-            width: 10px;
-            height: 20px;
-            background-color: #0f0;
-            animation: blink 1s step-end infinite;
-            position: relative;
-            top: 3px;
-        }
-        
         .error-message {
             color: #ff0000;
             font-weight: bold;
             font-size: 24px;
             text-align: center;
-            margin-top: 30px;
-            animation: error-blink 0.5s step-end infinite;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background-color: #001100;
             display: none;
-        }
-        
-        .typing {
-            overflow: visible;
-            white-space: nowrap;
-            border-right: 2px solid #0f0;
-            width: 0;
-            animation: typing 3s steps(30, end) forwards;
+            animation: error-blink 0.5s step-end infinite;
+            z-index: 10;
         }
         
         .ship-info {
@@ -172,6 +153,18 @@
             padding: 5px 0;
         }
         
+        .ship-ascii {
+            font-family: monospace;
+            white-space: pre;
+            line-height: 1.2;
+            font-size: 10px;
+            color: #0f0;
+            text-align: center;
+            margin: 20px auto;
+            max-width: 200px;
+            display: block;
+        }
+        
         @keyframes scanline {
             0% { top: -5%; }
             100% { top: 105%; }
@@ -183,31 +176,9 @@
             100% { opacity: 0.15; }
         }
         
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0; }
-        }
-        
         @keyframes error-blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0.6; }
-        }
-        
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-        
-        .ship-ascii {
-            font-family: monospace;
-            white-space: pre;
-            line-height: 1.2;
-            font-size: 10px;
-            color: #0f0;
-            text-align: center;
-            margin: 20px auto;
-            max-width: 200px;
-            display: block;
         }
         
         @media (max-width: 768px) {
@@ -228,18 +199,11 @@
             }
             
             .message-container {
-                height: auto; /* Changed from fixed height */
-                max-height: 250px; /* Added max-height */
-                overflow-y: auto; /* Added scrolling */
+                height: 200px;
             }
             
             .error-message {
-                display: block; /* Force display */
-                font-size: 20px;
-                opacity: 1; /* Full opacity */
-                margin-top: 20px;
-                position: relative;
-                z-index: 10; /* Ensure visibility */
+                font-size: 18px;
             }
         }
         
@@ -259,23 +223,8 @@
             }
             
             .message-container {
-                max-height: 180px;
                 padding: 15px;
             }
-            
-            .error-message {
-                font-size: 18px;
-            }
-        }
-        
-        /* Screen and page are the elements that could have scrollbars */
-        .screen::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .screen {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
         }
     </style>
 </head>
@@ -311,10 +260,8 @@
                         <div class="message-line">
                             <span id="message-text">MESSAGE: Dufus in trouble, I repeat dufus in trouble. I am at...</span>
                         </div>
-                        <div class="message-line">
-                            <span id="error-message" class="error-message">CONNECTION INTERRUPTED</span>
-                        </div>
                     </div>
+                    <div id="error-message" class="error-message">CONNECTION INTERRUPTED</div>
                 </div>
             </div>
             
@@ -332,6 +279,13 @@
             let fullLocationText = locationText.textContent;
             locationText.textContent = '';
             
+            // Type message text
+            let messageText = document.getElementById('message-text');
+            let fullMessageText = messageText.textContent;
+            messageText.textContent = '';
+            
+            let errorMessage = document.getElementById('error-message');
+            
             function typeLocation(index) {
                 if (index < fullLocationText.length) {
                     locationText.textContent += fullLocationText.charAt(index);
@@ -342,11 +296,6 @@
                 }
             }
             
-            // Type message text
-            let messageText = document.getElementById('message-text');
-            let fullMessageText = messageText.textContent;
-            messageText.textContent = '';
-            
             function typeMessage(index) {
                 if (index < fullMessageText.length) {
                     messageText.textContent += fullMessageText.charAt(index);
@@ -354,9 +303,7 @@
                 } else {
                     // Show error message after message typing is complete
                     setTimeout(() => {
-                        let errorMessage = document.getElementById('error-message');
                         errorMessage.style.display = 'block';
-                        errorMessage.style.opacity = '1';
                     }, 800);
                 }
             }
@@ -364,9 +311,6 @@
             function startMessageTyping() {
                 typeMessage(0);
             }
-            
-            // Start the typing sequence
-            typeLocation(0);
             
             // Update date and time
             function updateDateTime() {
@@ -398,6 +342,9 @@
                     }, 100);
                 }
             }, 2000);
+            
+            // Start the typing sequence
+            typeLocation(0);
         });
     </script>
 </body>
