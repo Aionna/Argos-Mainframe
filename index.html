@@ -228,7 +228,18 @@
             }
             
             .message-container {
-                height: 180px;
+                height: auto; /* Changed from fixed height */
+                max-height: 250px; /* Added max-height */
+                overflow-y: auto; /* Added scrolling */
+            }
+            
+            .error-message {
+                display: block; /* Force display */
+                font-size: 20px;
+                opacity: 1; /* Full opacity */
+                margin-top: 20px;
+                position: relative;
+                z-index: 10; /* Ensure visibility */
             }
         }
         
@@ -248,8 +259,12 @@
             }
             
             .message-container {
-                height: 160px;
+                max-height: 180px;
                 padding: 15px;
+            }
+            
+            .error-message {
+                font-size: 18px;
             }
         }
         
@@ -339,7 +354,9 @@
                 } else {
                     // Show error message after message typing is complete
                     setTimeout(() => {
-                        document.getElementById('error-message').style.display = 'block';
+                        let errorMessage = document.getElementById('error-message');
+                        errorMessage.style.display = 'block';
+                        errorMessage.style.opacity = '1';
                     }, 800);
                 }
             }
