@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGOS Mainframe Terminal</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #000;
+            font-family: 'VT323', monospace;
+            color: #0f0;
+            overflow: hidden;
+        }
+        
+        .terminal {
+            position: relative;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        
+        .screen {
+            height: 100%;
+            background-color: #001100;
+            border-radius: 10px;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            position: relative;
+            overflow: auto;
+        }
+        
+        .scanline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 255, 0, 0.1);
+            opacity: 0.75;
+            animation: scanline 6s linear infinite;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .flicker {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 50, 0, 0.1);
+            opacity: 0;
+            animation: flicker 0.3s infinite;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        
+        .subheader {
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+        
+        .content {
+            margin-top: 40px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .message-container {
+            border: 1px solid #0f0;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            position: relative;
+            height: 200px;
+            overflow: auto;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .message-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .message-header {
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 1px solid #0f0;
+            padding-bottom: 10px;
+        }
+        
+        .message-text {
+            font-size: 20px;
+            line-height: 1.8;
+        }
+        
+        .message-line {
+            margin-bottom: 20px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background-color: #0f0;
+            animation: blink 1s step-end infinite;
+            position: relative;
+            top: 3px;
+        }
+        
+        .error-message {
+            color: #ff0000;
+            font-weight: bold;
+            font-size: 24px;
+            text-align: center;
+            margin-top: 30px;
+            animation: error-blink 0.5s step-end infinite;
+            display: none;
+        }
+        
+        .typing {
+            overflow: visible;
+            white-space: nowrap;
+            border-right: 2px solid #0f0;
+            width: 0;
+            animation: typing 3s steps(30, end) forwards;
+        }
+        
+        .ship-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 16px;
+            opacity: 0.7;
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            opacity: 0.7;
+            background-color: #001100;
+            padding: 5px 0;
+        }
+        
+        @keyframes scanline {
+            0% { top: -5%; }
+            100% { top: 105%; }
+        }
+        
+        @keyframes flicker {
+            0% { opacity: 0.1; }
+            50% { opacity: 0; }
+            100% { opacity: 0.15; }
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        @keyframes error-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.6; }
+        }
+        
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        
+        .ship-ascii {
+            font-family: monospace;
+            white-space: pre;
+            line-height: 1.2;
+            font-size: 10px;
+            color: #0f0;
+            text-align: center;
+            margin: 20px auto;
+            max-width: 200px;
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 28px;
+            }
+            
+            .subheader {
+                font-size: 16px;
+            }
+            
+            .message-text {
+                font-size: 18px;
+            }
+            
+            .ship-ascii {
+                font-size: 8px;
+            }
+            
+            .message-container {
+                height: 180px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 24px;
+            }
+            
+            .ship-info {
+                font-size: 14px;
+            }
+            
+            .status-bar {
+                font-size: 14px;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .message-container {
+                height: 160px;
+                padding: 15px;
+            }
+        }
+        
+        /* Screen and page are the elements that could have scrollbars */
+        .screen::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .screen {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal">
+        <div class="screen">
+            <div class="scanline"></div>
+            <div class="flicker"></div>
+            
+            <div class="ship-info">ARGOS SYSTEM v2.14.3</div>
+            
+            <div class="header">
+                <div class="logo">ARGOS</div>
+                <div class="subheader">CANINE-CLASS INTERSTELLAR VESSEL</div>
+                <div class="ship-ascii">
+     /^-^\
+    / o o \
+   /   Y   \
+   V \ v / V
+    / - \
+   /    |
+  --------------
+</div>
+            </div>
+            
+            <div class="content">
+                <div class="message-container">
+                    <div class="message-header">INCOMING TRANSMISSION</div>
+                    <div class="message-text">
+                        <div class="message-line">
+                            <span id="location-text">LOCATION: UNKNOWN</span>
+                        </div>
+                        <div class="message-line">
+                            <span id="message-text">MESSAGE: Dufus in trouble, I repeat dufus in trouble. I am at...</span>
+                        </div>
+                        <div class="message-line">
+                            <span id="error-message" class="error-message">CONNECTION INTERRUPTED</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-bar">
+                <div id="date-time">DATE: 2343.07.12 | TIME: 23:42:18</div>
+                <div>SYSTEM STATUS: ALERT</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Type location text
+            let locationText = document.getElementById('location-text');
+            let fullLocationText = locationText.textContent;
+            locationText.textContent = '';
+            
+            function typeLocation(index) {
+                if (index < fullLocationText.length) {
+                    locationText.textContent += fullLocationText.charAt(index);
+                    setTimeout(() => typeLocation(index + 1), 50);
+                } else {
+                    // Start typing the message after location is done
+                    setTimeout(startMessageTyping, 500);
+                }
+            }
+            
+            // Type message text
+            let messageText = document.getElementById('message-text');
+            let fullMessageText = messageText.textContent;
+            messageText.textContent = '';
+            
+            function typeMessage(index) {
+                if (index < fullMessageText.length) {
+                    messageText.textContent += fullMessageText.charAt(index);
+                    setTimeout(() => typeMessage(index + 1), 50);
+                } else {
+                    // Show error message after message typing is complete
+                    setTimeout(() => {
+                        document.getElementById('error-message').style.display = 'block';
+                    }, 800);
+                }
+            }
+            
+            function startMessageTyping() {
+                typeMessage(0);
+            }
+            
+            // Start the typing sequence
+            typeLocation(0);
+            
+            // Update date and time
+            function updateDateTime() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+                
+                document.getElementById('date-time').textContent = 
+                    `DATE: ${year}.${month}.${day} | TIME: ${hours}:${minutes}:${seconds}`;
+            }
+            
+            // Initial update
+            updateDateTime();
+            
+            // Update every second
+            setInterval(updateDateTime, 1000);
+            
+            // Add random screen flicker
+            setInterval(() => {
+                const screen = document.querySelector('.screen');
+                if (Math.random() > 0.7) {
+                    screen.style.opacity = (Math.random() * 0.2 + 0.8).toString();
+                    setTimeout(() => {
+                        screen.style.opacity = '1';
+                    }, 100);
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
